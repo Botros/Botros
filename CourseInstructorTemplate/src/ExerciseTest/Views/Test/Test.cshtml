@@ -1,0 +1,245 @@
+﻿@model ExerciseTest.ViewModel.Test.TestViewModel
+@using ExercisePlugin;
+@Html.Partial($"/Views/{Model.CourseName}/{Model.ExerciseFileName}",Model.ExerciseViewModel)
+ <style>
+     table .input-group{
+         border-spacing:0px;
+     }
+
+     td{
+        padding-right:5px;
+     }
+
+     .round-edges-left{
+         border-bottom-left-radius:5px !important;
+         border-top-left-radius:5px !important;
+     }
+
+     .round-edges-right{
+         border-bottom-right-radius:5px !important;
+         border-top-right-radius:5px !important;
+     }
+
+     input.minwidth{
+         min-width:80px;
+     }
+ </style>
+<div class="row">
+    @{int currentRow = 0; }
+    <div class="col-xs-12">
+        <form method="post" novalidate action="/Test/@Model.CourseName/@Model.ExerciseName">
+            @Html.HiddenFor(x => x.ExerciseName)
+            @Html.HiddenFor(x => x.ExerciseFileName)
+            @Html.HiddenFor(x => x.CourseName)
+            @Html.HiddenFor(x => x.Seed)
+
+            <table>
+                <tr>
+                
+            @for (int i = 0; i < Model.SolutionCells.Count; i++)
+            {
+                var solutionCell = Model.SolutionCells[i];
+                if (solutionCell.Row != currentRow)
+                {
+                    currentRow = solutionCell.Row;
+                    @:</tr><tr>
+                }
+
+                string inputStateClass = string.Empty;
+                if (solutionCell.State == InputStatus.Correct)
+                {
+                    inputStateClass = "has-success";
+                }
+                else if (solutionCell.State == InputStatus.SyntaxError || solutionCell.State == InputStatus.Missing)
+                {
+                    inputStateClass = "has-warning";
+                }
+                else if (solutionCell.State == InputStatus.Wrong)
+                {
+                    inputStateClass = "has-danger";
+                }
+
+                if (solutionCell.InputType == InputTypes.INT)
+                {
+                <td style="vertical-align:top;">
+                    <div class="form-group @inputStateClass" style="margin-bottom:0;">
+                        <div class="input-group">
+                            @if (!string.IsNullOrEmpty(solutionCell.Label))
+                            {
+                                <span class="input-group-addon">@solutionCell.Label</span>
+                            }
+                            <input type="number" class="form-control" asp-for="@Model.SolutionCells[i].Input">
+                        </div>
+                    </div>
+                </td>
+                }
+                else if (solutionCell.InputType == InputTypes.DOUBLE)
+                {
+                <td>
+                    <div class="form-group">
+                        <div class="input-group @inputStateClass">
+                            @if (!string.IsNullOrEmpty(solutionCell.Label))
+                            {
+                                <span class="input-group-addon" id="basic-addon1">@solutionCell.Label</span>
+                            }
+                            <input type="number" step="any" class="form-control" asp-for="@Model.SolutionCells[i].Input">
+                        </div>
+
+                    </div>
+                </td>
+                }
+                else if (solutionCell.InputType == InputTypes.FRACTION)
+                {
+                    string[] fraction = Model?.SolutionCells[i]?.Input?.Split('/');
+                    string numerator = string.Empty;
+                    string dominator = string.Empty;
+                    if (fraction?.Length == 2)
+                    {
+                        numerator = fraction[0];
+                        dominator = fraction[1];
+                    }
+                <td>
+                    <div class="form-group">
+                        <div class="input-group @inputStateClass">
+                            @if (!string.IsNullOrEmpty(solutionCell.Label))
+                            {
+                                <span class="input-group-addon">@solutionCell.Label</span>
+                            }
+                            <input type="number" class="form-control numerator minwidth" id="numerator_@i" value="@numerator">
+                            <span class="input-group-addon" style="background: #ffffff;"><strong>/</strong></span>
+                            <input asp-for="@Model.SolutionCells[i].Input" type="hidden" value="3" id="fractionresult_@i" />
+                            <input type="number" class="form-control denominator minwidth" id="denominator_@i" value="@dominator">
+                            
+                        </div>
+                    </div>
+                </td>
+                }
+                else if (solutionCell.InputType == InputTypes.TEXT)
+                {
+                <td>
+                    <div class="form-group">
+                        <div class="input-group @inputStateClass">
+                            @if (!string.IsNullOrEmpty(solutionCell.Label))
+                            {
+                                <span class="input-group-addon">@solutionCell.Label</span>
+                            }
+                            <input type="text" step="any" class="form-control minwidth" asp-for="@Model.SolutionCells[i].Input" >
+                        </div>
+                    </div>
+                </td>
+                }
+                else if (solutionCell.InputType == InputTypes.LABEL_ONLY)
+                {
+
+                <td style="vertical-align:top;">
+                    
+                    @if (!string.IsNullOrEmpty(solutionCell.Label))
+                    {
+                        <div class="bg-faded" style="border: 1px solid #C4C4C4; border-radius:5px; padding:5px;">@Model.SolutionCells[i].Label</div>
+                    }
+                </td>
+                }
+                else if (solutionCell.InputType == InputTypes.TRUE_FALSE)
+                {
+                    string trueFalseResult = Model?.SolutionCells[i]?.Input;
+                    string truePreselect = null;
+                    string falsePreselect = null;
+                    if (trueFalseResult == "true")
+                    {
+                        truePreselect = "checked";
+                    }
+                    else if (trueFalseResult == "false")
+                    {
+                        falsePreselect = "checked";
+                    }
+                <td>
+                    <div class="form-group">
+                        <div class="input-group @inputStateClass">
+                            <input asp-for="@Model.SolutionCells[i].Input" type="hidden" id="truefalseresult_@i" />
+                            @if (!string.IsNullOrEmpty(solutionCell.Label))
+                            {
+                                <span class="round-edges-left input-group-addon" >@solutionCell.Label</span>
+                            }
+                            
+                            <span class="input-group-addon @(string.IsNullOrEmpty(solutionCell.Label)?"round-edges-left":"")" style="padding-left:0;" >
+                                <label class="form-check-label">
+                                    <input class="trueradio" type="radio" @truePreselect name="truefalseradio_@i" id="truefalseradiooptiontrue_@i" value="true"> @Localizer["True"]
+                                </label>
+                            </span>
+                            <span class="input-group-addon" style="padding-left:0;">
+                                <label class="form-check-label">
+                                    <input class="falseradio" type="radio" @falsePreselect name="truefalseradio_@i" id="truefalseradiooptionfalse_@i" value="false"> @Localizer["False"]
+                                </label>
+                            </span>
+
+                        </div>
+                    </div>
+                </td>
+
+                }
+                else
+                {
+                <td><p>@Localizer["Invalid input type. Contact the administrator."]</p></td>
+                }
+
+                @Html.HiddenFor(x => x.SolutionCells[i].Label)
+                @Html.HiddenFor(x => x.SolutionCells[i].InputType)
+                @Html.HiddenFor(x => x.SolutionCells[i].State)
+                @Html.HiddenFor(x => x.SolutionCells[i].Row)
+                @Html.HiddenFor(x => x.SolutionCells[i].Column)
+            }
+                </tr>
+            </table>
+            <div class="col-xs-12">
+                <div class="form-group">
+                    <input type="submit" class="btn btn-success pull-xs-right" value="@Localizer["Submit"]" />
+                    <a href="/Test/@Model.CourseName/@Model.ExerciseName?getSolution=true&seed=@Model.Seed" class="btn btn-primary pull-xs-right" id="getsolutionlink">@Localizer["Get solution"]</a>
+                </div>
+            </div>
+        </form>
+
+    </div>
+</div>
+
+@section Scripts{
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $('#seed').change(function () {
+                var seed = $('#seed').val();
+                $('#seedlink').attr('href', '/Test/@Model.CourseName/@Model.ExerciseName?seed=' + seed);
+            });
+        });
+
+        $(document).ready(function () {
+            $('.numerator').change(function () {
+                var id = this.id.substring(10, this.id.length);
+                var denominator = $('#denominator_'+id).val();
+                var numerator = this.value;
+                $('#fractionresult_' + id).val(numerator + '/' + denominator);
+            });
+
+            $('.numerator').change();
+
+            $('.denominator').change(function () {
+                var id = this.id.substring(12, this.id.length);
+                var numerator = $('#numerator_' + id).val();
+                var denominator = this.value;
+                $('#fractionresult_' + id).val(numerator + '/' + denominator);
+            });
+
+            $('input[type=radio]').change(function () {
+
+                if ($(this).is('.trueradio')) {
+                    var id = this.id.substring(25, this.id.length);
+                    $('#truefalseresult_' + id).val('true');
+
+                }
+                else if ($(this).is('.falseradio')) {
+                    var id = this.id.substring(26, this.id.length);
+                    $('#truefalseresult_' + id).val('false');
+                }
+            });
+
+        });
+    </script>
+}

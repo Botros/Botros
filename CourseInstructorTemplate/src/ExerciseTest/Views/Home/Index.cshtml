@@ -1,0 +1,27 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+
+<input type="text" id="course"/>
+<input type="text" id="exercise"/>
+<a href="" id="link">@Localizer["Go"]</a>
+
+@section scripts{
+    <script type="text/javascript">
+        $(document).ready(function () {
+            function setlink() {
+                var course = $("#course").val();
+                var exercise = $("#exercise").val();
+                course = encodeURIComponent(course);
+                exercise = encodeURIComponent(exercise);
+                $("#link").attr('href', '/Test/' + course+'/'+exercise);
+            }
+            $('#course').change(function () {
+                setlink();
+            });
+            $('#exercise').change(function () {
+                setlink();
+            });
+        });
+    </script>
+}
